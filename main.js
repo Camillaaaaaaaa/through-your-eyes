@@ -35,7 +35,6 @@ async function startWebcam() {
 }
 
 
-startWebcam();
 //https://lvngd.com/blog/how-write-custom-fragment-shader-glsl-and-use-it-threejs/
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -109,7 +108,7 @@ function render() {
 // animate
 //--------------------------------------------------------------------------------------------------------------------------------
 
-//startWebcam();
+startWebcam();
 
 //videoElement.style.display="none";
 
