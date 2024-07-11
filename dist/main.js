@@ -28,6 +28,9 @@ async function startWebcam() {
             videoElement.onloadedmetadata = () => resolve(videoElement);
         });
         videoElement.play();
+        videoElement.setAttribute("autoplay",'');
+        videoElement.setAttribute('muted','');
+        videoElement.setAttribute('playsinline','')
         
     } catch (error) {
         console.error('Error accessing webcam:', error);
