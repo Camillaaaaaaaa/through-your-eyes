@@ -113,7 +113,7 @@ function render() {
 
 //startWebcam();
 
-videoElement.style.display="none";
+//videoElement.style.display="none";
 
 function animate() {
     
