@@ -20,7 +20,7 @@ async function startWebcam() {
             video: {
               height: 1920,
               width: 1080,
-              facingMode: 'user',
+              facingMode: 'environment',
             } });
         videoElement.width = 1080;
         videoElement.height = 1920;
