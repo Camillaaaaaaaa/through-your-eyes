@@ -22,8 +22,8 @@ async function startWebcam() {
               width: 1080,
               facingMode: 'user',
             } });
-        videoElement.width = 1920;
-        videoElement.height = 1080;
+        videoElement.width = 1080;
+        videoElement.height = 1920;
         videoElement.srcObject = stream;
         //https://github.com/tensorflow/tfjs/issues/322
         videoElement = await new Promise((resolve, reject) => {
@@ -37,6 +37,7 @@ async function startWebcam() {
 }
 
 
+startWebcam();
 //https://lvngd.com/blog/how-write-custom-fragment-shader-glsl-and-use-it-threejs/
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -46,10 +47,11 @@ async function startWebcam() {
 let camera,scene,renderer, loader;
 
 const w= screen.width;
-const h= 1920*screen.weight/1080;
+const h= 1920*screen.width/1080;
 
 //const w= 1920;
 //const h= 1080;
+
 
 scene = new THREE.Scene();
 scene.background = new THREE.Color( 0x000000 );
@@ -109,7 +111,9 @@ function render() {
 // animate
 //--------------------------------------------------------------------------------------------------------------------------------
 
-startWebcam();
+//startWebcam();
+
+videoElement.style.display="none";
 
 function animate() {
     
