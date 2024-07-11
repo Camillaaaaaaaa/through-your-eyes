@@ -18,8 +18,6 @@ async function startWebcam() {
     try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: false,
             video: {
-              height: 1920,
-              width: 1080,
               facingMode: 'environment',
             } });
         videoElement.width = 1080;
@@ -47,7 +45,7 @@ startWebcam();
 let camera,scene,renderer, loader;
 
 const w= screen.width;
-const h= 1920*screen.width/1080;
+const h= parseInt(1920*screen.width/1080);
 
 //const w= 1920;
 //const h= 1080;
