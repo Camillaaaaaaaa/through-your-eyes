@@ -35,7 +35,7 @@ async function startWebcam() {
         videoElement.setAttribute('muted','');
         videoElement.setAttribute('playsinline','')
         
-        h= parseInt(videoElement.videoHeight*screen.width/videoElement.videoWidth);
+        h= parseInt(videoElement.videoHeight*w/videoElement.videoWidth);
         
     } catch (error) {
         console.error('Error accessing webcam:', error);
@@ -162,7 +162,7 @@ function setup_motion(){
 function detect_motion(){
 
     let no_motion= 0.15;
-    let motion_change=4;
+    let motion_change=6;
     
     ctx.drawImage(videoElement, 0, 0, w_motion_canvas, h_motion_canvas);
     data = ctx.getImageData(0, 0, w_motion_canvas, h_motion_canvas).data;
@@ -188,16 +188,24 @@ function detect_motion(){
             var dz = pb - b;
             
             var dist = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2) + Math.pow(dz, 2));
-            if(dist>no_motion){
+
+            dist=dist/1000;
+
+            console.log(dist);
+
+            if(dist>=0.02){
+                dist=0.02;
+            }
+
             sum_motion[
                 parseInt(y / pixels_per_tile[1]) * tiles_dim[0] +
                 parseInt(x / pixels_per_tile[0])
-                ] += dist/1000;
-            }
+                ] += dist;
+            
             motion[
                 parseInt(y / pixels_per_tile[1]) * tiles_dim[0] +
                 parseInt(x / pixels_per_tile[0])
-                ] += dist/1000;
+                ] += dist;
 
         }
     }
@@ -206,7 +214,9 @@ function detect_motion(){
         for(let y = 0; y<tiles_dim[0];y++){
 
             if (motion[x*tiles_dim[0]+y]<no_motion){
-                color_per_tile[x][y]=current_filter;
+                if(sum_motion[x*tiles_dim[0]+y]>motion_change/2){
+                    color_per_tile[x][y]=current_filter;
+                }
             }else{
             
                 if (sum_motion[x*tiles_dim[0]+y]>motion_change){

@@ -181,7 +181,7 @@ void main(){
     else if (col_index<=6.)
         finalC= vec3(blur(newPos,texOffset));
     else if (col_index<=7.)
-        finalC= vec3(0.7);
+        finalC= col;
     
     gl_FragColor = vec4(finalC,1.);
 }`;
