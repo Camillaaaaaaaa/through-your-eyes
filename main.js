@@ -192,11 +192,11 @@ function detect_motion(){
     for(let x = 0; x<tiles_dim[1];x++){
         for(let y = 0; y<tiles_dim[0];y++){
 
-            if (motion[x*tiles_dim[0]+y]<0.2){
+            if (motion[x*tiles_dim[0]+y]<0.1){
                 color_per_tile[x][y]=current_filter;
             }else{
             
-                if (sum_motion[x*tiles_dim[0]+y]>8){
+                if (sum_motion[x*tiles_dim[0]+y]>4){
                     randomColor(x,y);
                     sum_motion[x*tiles_dim[0]+y]=0;
                 }
