@@ -11,7 +11,8 @@ import * as THREE from 'three';
 import vertex from "./vertex.js";
 
 let current_filter=0;
-
+let w= screen.width;
+let h= 0;
 
 
 let stream;
@@ -22,8 +23,8 @@ async function startWebcam() {
             video: {
               facingMode: 'environment',
             } });
-        videoElement.width = 1080;
-        videoElement.height = 1920;
+        //videoElement.width = 1080;
+        //videoElement.height = 1920;
         videoElement.srcObject = stream;
         //https://github.com/tensorflow/tfjs/issues/322
         videoElement = await new Promise((resolve, reject) => {
@@ -34,51 +35,15 @@ async function startWebcam() {
         videoElement.setAttribute('muted','');
         videoElement.setAttribute('playsinline','')
         
+        h= parseInt(videoElement.videoHeight*screen.width/videoElement.videoWidth);
+        
     } catch (error) {
         console.error('Error accessing webcam:', error);
     }
 }
 
 
-//https://lvngd.com/blog/how-write-custom-fragment-shader-glsl-and-use-it-threejs/
-
-//--------------------------------------------------------------------------------------------------------------------------------
-// set up scene
-//--------------------------------------------------------------------------------------------------------------------------------
-
-let camera,scene,renderer, loader;
-
-const w= screen.width;
-const h= parseInt(1920*screen.width/1080);
-
-//const w= 1920;
-//const h= 1080;
-
-
-scene = new THREE.Scene();
-scene.background = new THREE.Color( 0x000000 );
-
-loader = new THREE.TextureLoader();
-
-camera = new THREE.OrthographicCamera( w / - 2, w/ 2, h/ 2, h/ - 2, 1, 1000 );
-camera.position.z = 1;
-
-const canvas = document.querySelector('#glCanvas');
-
-var texture = new THREE.VideoTexture( videoElement );
-texture.colorSpace = THREE.LinearSRGBColorSpace;
-texture.minFilter = THREE.LinearFilter;
-texture.magFilter = THREE.LinearFilter;
-texture.format = THREE.RGBFormat;
-
-//const texture = new THREE.TextureLoader().load( "linz.png" );
-
-renderer = new THREE.WebGLRenderer({canvas});
-renderer.setPixelRatio( screen.devicePixelRatio);
-renderer.setSize( w, h );
-
-const plane = new THREE.PlaneGeometry(w, h);
-
+startWebcam();
 //--------------------------------------------------------------------------------------------------------------------------------
 // matrix
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -99,26 +64,63 @@ for(let x = 0; x<tiles_dim[1];x++){
     }
 }
 
+//https://lvngd.com/blog/how-write-custom-fragment-shader-glsl-and-use-it-threejs/
+
+//--------------------------------------------------------------------------------------------------------------------------------
+// set up scene
+//--------------------------------------------------------------------------------------------------------------------------------
+
+let camera,scene,renderer, loader, canvas,plane,texture,material,mesh;
+
+function setup_threeJS(){
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color( 0x000000 );
+
+    loader = new THREE.TextureLoader();
+
+    camera = new THREE.OrthographicCamera( w / - 2, w/ 2, h/ 2, h/ - 2, 1, 1000 );
+    camera.position.z = 1;
+
+    canvas = document.querySelector('#glCanvas');
+
+    texture = new THREE.VideoTexture( videoElement );
+    texture.colorSpace = THREE.LinearSRGBColorSpace;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.format = THREE.RGBFormat;
+
+    //const texture = new THREE.TextureLoader().load( "linz.png" );
+
+    renderer = new THREE.WebGLRenderer({canvas});
+    renderer.setPixelRatio( screen.devicePixelRatio);
+    renderer.setSize( w, h );
+
+    plane = new THREE.PlaneGeometry(w, h);
+
+    material = new THREE.ShaderMaterial( {
+        uniforms: {
+            u_resolution: new THREE.Uniform( new THREE.Vector2() ),
+            texSize: {value: [1080,920]},
+            colorM: {value: color_per_tile.flat(Infinity)},
+            tex0:{
+                type:'t',
+                value: texture
+            }
+        },
+        fragmentShader: vertex,
+    } );
+    
+    mesh = new THREE.Mesh( plane, material );
+    
+    scene.add( mesh );
+
+}
+
+
+
 //--------------------------------------------------------------------------------------------------------------------------------
 // shader
 //--------------------------------------------------------------------------------------------------------------------------------
-
-const material = new THREE.ShaderMaterial( {
-    uniforms: {
-        u_resolution: new THREE.Uniform( new THREE.Vector2() ),
-        texSize: {value: [1080,920]},
-        colorM: {value: color_per_tile.flat(Infinity)},
-        tex0:{
-            type:'t',
-            value: texture
-        }
-    },
-    fragmentShader: vertex,
-} );
-
-const mesh = new THREE.Mesh( plane, material );
-
-scene.add( mesh );
 
 function render() {
     const object = scene.children[ 0 ];
@@ -137,32 +139,42 @@ function render() {
 
 // sample the colour of every 50 pixels
 //https://codersblock.com/blog/motion-detection-with-javascript/
-var sample_size = 100;
-let pixels_per_tile=[w / tiles_dim[0],h / tiles_dim[1]];
+var sample_size,pixels_per_tile,offscreen,ctx,data,dataPrevious,w_motion_canvas,h_motion_canvas;
 
-let offscreen= new OffscreenCanvas(w,h);
-offscreen.width=w;
-offscreen.height=h;
+function setup_motion(){
+    h= parseInt(videoElement.videoHeight*screen.width/videoElement.videoWidth);
 
-var ctx=offscreen.getContext("2d", {willReadFrequently: true});
+    w_motion_canvas=600;
+    h_motion_canvas= parseInt(h*w_motion_canvas/w);
+
+    sample_size = 30;
+    pixels_per_tile=[w_motion_canvas / tiles_dim[0],h_motion_canvas / tiles_dim[1]];
+
+    offscreen= new OffscreenCanvas(w_motion_canvas,h_motion_canvas);
+
+    ctx=offscreen.getContext("2d", {willReadFrequently: true});
 
 
-let data = ctx.getImageData(0, 0, w, h).data;
-let dataPrevious = ctx.getImageData(0, 0, w, h).data;
+    data = ctx.getImageData(0, 0, w_motion_canvas, h_motion_canvas).data;
+    dataPrevious = ctx.getImageData(0, 0, w_motion_canvas, h_motion_canvas).data;
+}
 
 function detect_motion(){
+
+    let no_motion= 0.15;
+    let motion_change=4;
     
-    ctx.drawImage(videoElement, 0, 0, w, h);
-    data = ctx.getImageData(0, 0, w, h).data;
+    ctx.drawImage(videoElement, 0, 0, w_motion_canvas, h_motion_canvas);
+    data = ctx.getImageData(0, 0, w_motion_canvas, h_motion_canvas).data;
 
     for(let x = 0; x<motion.length;x++){
         motion[x]=0;
     }
 
-    for (var y = 0; y < h; y+= sample_size) {
-        for (var x = 0; x < w; x+= sample_size) {
+    for (var y = 0; y < h_motion_canvas; y+= sample_size) {
+        for (var x = 0; x < w_motion_canvas; x+= sample_size) {
 
-            var index = (x + y * w) * 4;
+            var index = (x + y * w_motion_canvas) * 4;
             let pr = dataPrevious[index + 0];
             let pg = dataPrevious[index + 1];
             let pb = dataPrevious[index + 2];
@@ -176,11 +188,12 @@ function detect_motion(){
             var dz = pb - b;
             
             var dist = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2) + Math.pow(dz, 2));
-    
+            if(dist>no_motion){
             sum_motion[
-            parseInt(y / pixels_per_tile[1]) * tiles_dim[0] +
-            parseInt(x / pixels_per_tile[0])
-            ] += dist/1000;
+                parseInt(y / pixels_per_tile[1]) * tiles_dim[0] +
+                parseInt(x / pixels_per_tile[0])
+                ] += dist/1000;
+            }
             motion[
                 parseInt(y / pixels_per_tile[1]) * tiles_dim[0] +
                 parseInt(x / pixels_per_tile[0])
@@ -192,11 +205,11 @@ function detect_motion(){
     for(let x = 0; x<tiles_dim[1];x++){
         for(let y = 0; y<tiles_dim[0];y++){
 
-            if (motion[x*tiles_dim[0]+y]<0.1){
+            if (motion[x*tiles_dim[0]+y]<no_motion){
                 color_per_tile[x][y]=current_filter;
             }else{
             
-                if (sum_motion[x*tiles_dim[0]+y]>4){
+                if (sum_motion[x*tiles_dim[0]+y]>motion_change){
                     randomColor(x,y);
                     sum_motion[x*tiles_dim[0]+y]=0;
                 }
@@ -231,15 +244,25 @@ function randomColor(x,y) {
 // animate
 //--------------------------------------------------------------------------------------------------------------------------------
 
-startWebcam();
+let motion_setup=false;
 
 //videoElement.style.display="none";
 
 function animate() {
     
+    
     requestAnimationFrame( animate );
-    render();
-    detect_motion();
+
+    if(videoElement.videoHeight>0&&!motion_setup){
+        setup_motion();
+        setup_threeJS();
+        motion_setup=true;
+    }else{
+        if(motion_setup){
+            detect_motion();
+            render();
+        }
+    }
     console.log(motion);
 }
 
