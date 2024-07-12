@@ -9,19 +9,19 @@ varying vec2 vTexCoord;
 
 uniform sampler2D tex0;
 
-uniform float colorM[108];
+uniform float colorM[15];
 
 float get_matrix_pos(vec2 pos){
-  int x_index= int(pos.x*12.);
-  int y_index= int(pos.y*9.);
+  int x_index= int(pos.x*3.);
+  int y_index= int(pos.y*5.);
 
   float col_index = 0.;
   
   // get number in matrix
-  for( int i = 0; i<12; i++){
-    for(int j = 0; j<9; j++){
+  for( int i = 0; i<3; i++){
+    for(int j = 0; j<5; j++){
       if (x_index== i && y_index==j)
-        col_index = colorM[i+12*(8-j)];
+        col_index = colorM[i+3*(4-j)];
     }
   }
   
@@ -159,7 +159,7 @@ void main(){
     vec3 col = texture2D(tex0, newPos).rgb;
     //vec2 col= newPos/u_resolution.xy;
 
-    float col_index= 1.;
+    float col_index= get_matrix_pos(newPos);
     //float col_index= 0.;
   
     vec3 finalC=vec3(draw_grid(newPos));
@@ -167,7 +167,7 @@ void main(){
     //if (draw_grid(newPos)==1.)
       //finalC=vec3(0.);
     if(col_index==0.)
-        finalC= mix(col,vec3(1.), 0.5);
+        finalC= col;
     else if (col_index<=1.)
         finalC= mix(col,get_protanopia(col), col_index);
     else if (col_index<=2.)
