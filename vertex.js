@@ -171,17 +171,17 @@ void main(){
     else if (col_index<=1.)
         finalC= mix(col,get_protanopia(col), col_index);
     else if (col_index<=2.)
-        finalC= mix(col,get_deuteranopia(col), col_index-1.);
+      finalC= vec3(blur(newPos,texOffset));
     else if (col_index<=3.)
         finalC= mix(col,get_tritanopia(col), col_index-2.);
     else if (col_index<=4.)
-        finalC= mix(col,get_achromatopsia(col), col_index-3.);
+      finalC= mix(col,vec3(1.), 0.3);
     else if (col_index<=5.)
-        finalC= vec3(edge_detection(newPos,texOffset));
+      finalC= mix(col,get_deuteranopia(col), col_index-4.);
     else if (col_index<=6.)
-        finalC= vec3(blur(newPos,texOffset));
+      finalC= mix(col,get_achromatopsia(col), col_index-5.);
     else if (col_index<=7.)
-        finalC= col;
+      finalC= vec3(edge_detection(newPos,texOffset));
     
     gl_FragColor = vec4(finalC,1.);
 }`;
