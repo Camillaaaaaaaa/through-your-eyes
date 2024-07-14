@@ -404,7 +404,7 @@ function detect_motion(){
                 randomColor(x,y);
                 animated[x][y]=true;
                 amount_tiles_changed++;
-                setTimeout(resetColor, 400+700*motion[x * tiles_dim[0] + y], x,y);
+                setTimeout(resetColor, 700+800*motion[x * tiles_dim[0] + y], x,y);
             }else{
                 if(!animated[x][y]){
                     color_per_tile[x][y]=current_filter;
