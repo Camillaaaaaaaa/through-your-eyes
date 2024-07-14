@@ -323,6 +323,9 @@ function render() {
 //https://codersblock.com/blog/motion-detection-with-javascript/
 var sample_size,pixels_per_tile,offscreen,ctx,data,dataPrevious,w_motion_canvas,h_motion_canvas;
 
+var max_tiles=7;
+var amount_tiles_changed=0;
+
 function setup_motion(){
     h= parseInt(videoElement.videoHeight*screen.width/videoElement.videoWidth);
 
@@ -397,10 +400,11 @@ function detect_motion(){
 
       for (let x = 0; x < tiles_dim[1]; x++) {
         for (let y = 0; y < tiles_dim[0]; y++) {
-            if(motion[x * tiles_dim[0] + y]>motion_threshold&&!animated[x][y]){
+            if(motion[x * tiles_dim[0] + y]>motion_threshold&&!animated[x][y]&&amount_tiles_changed<max_tiles){
                 randomColor(x,y);
                 animated[x][y]=true;
-                setTimeout(resetColor, 200+800*motion[x * tiles_dim[0] + y], x,y);
+                amount_tiles_changed++;
+                setTimeout(resetColor, 700+800*motion[x * tiles_dim[0] + y], x,y);
             }else{
                 if(!animated[x][y]){
                     color_per_tile[x][y]=current_filter;
@@ -421,7 +425,7 @@ function detect_motion(){
     }
 }
 */
-setInterval(change_filter, 4000);
+setInterval(change_filter, 5000);
 
 function change_filter() {
     current_filter++;
@@ -436,6 +440,7 @@ function randomColor(x,y) {
 function resetColor(x,y) {
     animated[x][y]=false;
     color_per_tile[x][y]=current_filter;
+    amount_tiles_changed--;
 }
 
 
