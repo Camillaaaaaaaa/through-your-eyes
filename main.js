@@ -13,7 +13,7 @@ import vertex from "./vertex.js";
 let current_filter=0;
 let w= screen.width;
 let h= 0;
-let labels_vision=["typical human vision", "simulated red-green color blindness (protanopia)", "simulated garden snake vision", "simulated blue-yellow color blindness (tritanopia)", "simulated computer vision: object detection", "simulated red-green color blindness/ dog vision (deuteranopia)", "simulated achromatopsia", "simulated computer vision: edge detection"]
+let labels_vision=["typical human vision", "simulated red-green color blindness (protanopia)", "simulated garden snake vision", "simulated blue-yellow color blindness (tritanopia)", "computer vision: object detection", "simulated red-green color blindness/ dog vision (deuteranopia)", "simulated achromatopsia", "computer vision: edge detection"]
 let vision_label=document.getElementById("visionLabel");
 
 let stream;
@@ -35,8 +35,11 @@ async function startWebcam() {
         videoElement.setAttribute("autoplay",'');
         videoElement.setAttribute('muted','');
         videoElement.setAttribute('playsinline','')
+
+        console.log(videoElement.videoWidth, videoElement.videoHeight);
         
         h= parseInt(videoElement.videoHeight*w/videoElement.videoWidth);
+        console.log(w,h);
         
     } catch (error) {
         console.error('Error accessing webcam:', error);
@@ -447,6 +450,7 @@ let motion_setup=false;
 
 async function animate() {
     
+    videoElement.play();
     
     requestAnimationFrame( animate );
 
