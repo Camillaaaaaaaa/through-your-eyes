@@ -343,7 +343,7 @@ function setup_motion(){
 
 function detect_motion(){
 
-    let motion_threshold= 0.4;
+    let motion_threshold= 0.65;
 
 
     let change=[];
@@ -398,10 +398,9 @@ function detect_motion(){
       for (let x = 0; x < tiles_dim[1]; x++) {
         for (let y = 0; y < tiles_dim[0]; y++) {
             if(motion[x * tiles_dim[0] + y]>motion_threshold&&!animated[x][y]){
-                console.log(x,y);
                 randomColor(x,y);
                 animated[x][y]=true;
-                setTimeout(resetColor, 700+300*motion[x * tiles_dim[0] + y], x,y);
+                setTimeout(resetColor, 200+800*motion[x * tiles_dim[0] + y], x,y);
             }else{
                 if(!animated[x][y]){
                     color_per_tile[x][y]=current_filter;

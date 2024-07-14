@@ -1,3 +1,18 @@
+@media screen and (orientation: landscape) {
+    html {
+      /* Rotate the content container */
+      transform: rotate(-90deg);
+      transform-origin: left top;
+      /* Set content width to viewport height */
+      width: 100vh;
+      /* Set content height to viewport width */
+      height: 100vw;
+      overflow-x: hidden;
+      top: 100%;
+      left: 0;
+    }
+  }
+
 html,body {
     margin: 0;
     padding: 0;
@@ -29,4 +44,15 @@ p{
     font-size: 1rem;
     padding: 0.3rem 3rem;
     z-index: 1;
+    margin:0px;
+}
+
+#videoElement{
+    opacity: 0;
+    position: absolute;
+    top:0px;
+}
+
+#container{
+   position: relative;
 }
