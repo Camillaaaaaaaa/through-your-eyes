@@ -13,7 +13,8 @@ import vertex from "./vertex.js";
 let current_filter=0;
 let w= screen.width;
 let h= 0;
-
+let labels_vision=["typical human vision", "simulated red-green color blindness (protanopia)", "simulated garden snake vision", "simulated blue-yellow color blindness (tritanopia)", "computer vision: object detection", "simulated red-green color blindness/ dog vision (deuteranopia)", "simulated achromatopsia", "computer vision: edge detection"]
+let vision_label=document.getElementById("visionLabel");
 
 let stream;
 let videoElement = document.getElementById('videoElement');
@@ -34,8 +35,11 @@ async function startWebcam() {
         videoElement.setAttribute("autoplay",'');
         videoElement.setAttribute('muted','');
         videoElement.setAttribute('playsinline','')
+
+        console.log(videoElement.videoWidth, videoElement.videoHeight);
         
-        h= parseInt(videoElement.videoHeight*screen.width/videoElement.videoWidth);
+        h= parseInt(videoElement.videoHeight*w/videoElement.videoWidth);
+        console.log(w,h);
         
     } catch (error) {
         console.error('Error accessing webcam:', error);
@@ -44,6 +48,28 @@ async function startWebcam() {
 
 
 startWebcam();
+
+
+//--------------------------------------------------------------------------------------------------------------------------------
+// object detection
+//--------------------------------------------------------------------------------------------------------------------------------
+
+const model_coco = await cocoSsd.load();
+
+async function object_detection(img){
+    const predictions = await model_coco.detect(img);
+
+    //normalize positions
+    for (let i = 0; i < predictions.length; i++) {
+        predictions[i].bbox[0]=predictions[i].bbox[0]*w/img.videoWidth;
+        predictions[i].bbox[1]=predictions[i].bbox[1]*h/img.videoHeight;
+        predictions[i].bbox[2]=predictions[i].bbox[2]*w/img.videoWidth;
+        predictions[i].bbox[3]=predictions[i].bbox[3]*h/img.videoHeight;
+    }
+
+    return predictions;
+    //label_tiles(predictions);
+}
 //--------------------------------------------------------------------------------------------------------------------------------
 // matrix
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -52,17 +78,173 @@ startWebcam();
 let tiles_dim = [3,5];
 let color_per_tile=[];
 
+let animated=[];
+
 let motion = [];
 let sum_motion = [];
 
 for(let x = 0; x<tiles_dim[1];x++){
     color_per_tile.push([]);
+    animated.push([]);
     for(let y = 0; y<tiles_dim[0];y++){
-        color_per_tile[x].push(parseFloat(Math.floor(Math.random() * 7)+1));
+        color_per_tile[x].push(0);
         motion.push(0);
         sum_motion.push(0);
+        animated[x].push(false);
     }
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------
+// create object detection labels
+//--------------------------------------------------------------------------------------------------------------------------------
+
+let labels,tile_container,container,max_width,max_height
+
+function setup_object_detect_labels(){
+    labels=[];
+    tile_container=[];
+    container = document.getElementById("container");
+    
+    max_width= w/tiles_dim[0];
+    max_height= h/tiles_dim[1];
+    
+    for(let x = 0; x<tiles_dim[1];x++){
+        labels.push([]);
+        tile_container.push([]);
+        for(let y = 0; y<tiles_dim[0];y++){
+            const con = document.createElement("div");
+            con.style.width= max_width+"px";
+            con.style.height= max_height+"px";
+            con.style.position = "absolute";
+            con.style.left= y*max_width+"px";
+    
+            con.style.top= x*max_height+"px";
+    
+            const para = document.createElement("p");
+            para.innerHTML="no object found";
+    
+            
+            con.classList.add("tiles");
+    
+            
+            para.style.maxWidth=max_width+"px";
+            para.style.maxHeight=max_height+"px";
+    
+            con.appendChild(para);
+            container.appendChild(con);
+    
+            labels[x].push(para);
+            tile_container[x].push(con);
+        }
+    }
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+// create object outline
+//--------------------------------------------------------------------------------------------------------------------------------
+
+const object_outlines=[];
+const label_objects=[];
+
+function setup_object_outline(){
+    for(let x = 0; x<15;x++){
+    for(let y = 0; y<tiles_dim[0];y++){
+        const con = document.createElement("div");
+        con.style.position = "absolute";
+
+        const para = document.createElement("p");
+
+        con.classList.add("objectOutlines");
+        para.classList.add("labelObjects");
+
+        con.appendChild(para);
+        container.appendChild(con);
+
+        con.style.display="none";
+
+        label_objects.push(para);
+        object_outlines.push(con);
+    }
+}
+}
+
+
+
+
+
+//--------------------------------------------------------------------------------------------------------------------------------
+//check if rectancles overlap
+//https://www.educative.io/answers/how-to-check-if-two-rectangles-overlap-each-other
+//--------------------------------------------------------------------------------------------------------------------------------
+
+
+function check_rect_overlap(rect1,rect2){
+    let widthIsPositive = Math.min(rect1[2], rect2[2]) > Math.max(rect1[0], rect2[0]);
+    let heightIsPositive = Math.min(rect1[3], rect2[3]) > Math.max(rect1[1], rect2[1]);
+    
+    return ( widthIsPositive && heightIsPositive); 
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------------------
+// label tiles
+//--------------------------------------------------------------------------------------------------------------------------------
+function label_tiles(detections){
+    // reset labels
+    for(let x = 0; x<tiles_dim[1];x++){
+        for(let y = 0; y<tiles_dim[0];y++){
+            labels[x][y].innerHTML="no object found";
+        }
+    }
+
+    for(let x = 0; x<tiles_dim[1];x++){
+        for(let y = 0; y<tiles_dim[0];y++){
+        if (color_per_tile[x][y]==4.&&current_filter!=4.){
+            for (let i = 0; i < detections.length; i++) {
+                let tile= [w/tiles_dim[0]*y, h/tiles_dim[1]*x, w/tiles_dim[0]*(y+1),h/tiles_dim[1]*(x+1)];
+            
+                let detected= [detections[i].bbox[0], detections[i].bbox[1], detections[i].bbox[0]+detections[i].bbox[2], detections[i].bbox[1]+detections[i].bbox[3]];
+                if (check_rect_overlap(tile,detected)){
+                    
+                    if(labels[x][y].innerHTML=="no object found"){
+                        labels[x][y].innerHTML= Math.round(detections[i].score * 1000) / 1000+ "% " + detections[i].class;
+                    }else{
+                        labels[x][y].innerHTML+= "<br>" + Math.round(detections[i].score * 1000) / 1000+ "% " + detections[i].class;
+                    }
+                }
+            }
+        }else{
+            labels[x][y].innerHTML="";
+        }
+        }
+    }
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+// draw outlines
+//--------------------------------------------------------------------------------------------------------------------------------
+
+
+function draw_outline(detections) {
+    for (let i = 0; i < object_outlines.length; i++) {
+        if(detections.length>i){
+            object_outlines[i].style.display= "block";
+
+            object_outlines[i].style.width= detections[i].bbox[2]+"px";
+            object_outlines[i].style.height= detections[i].bbox[3]+"px";
+            object_outlines[i].style.left= detections[i].bbox[0]+"px";
+
+            object_outlines[i].style.top= detections[i].bbox[1]+"px";
+
+            label_objects[i].innerHTML=Math.round(detections[i].score * 1000) / 1000+ "% " + detections[i].class;
+        }
+        else{
+            
+            object_outlines[i].style.display= "none";
+        }
+    }
+  }
+
 
 //https://lvngd.com/blog/how-write-custom-fragment-shader-glsl-and-use-it-threejs/
 
@@ -70,7 +252,7 @@ for(let x = 0; x<tiles_dim[1];x++){
 // set up scene
 //--------------------------------------------------------------------------------------------------------------------------------
 
-let camera,scene,renderer, loader, canvas,plane,texture,material,mesh;
+let camera,scene,renderer, loader, canvas,plane,texture,material,mesh,ctx_gl;
 
 function setup_threeJS(){
     scene = new THREE.Scene();
@@ -141,6 +323,9 @@ function render() {
 //https://codersblock.com/blog/motion-detection-with-javascript/
 var sample_size,pixels_per_tile,offscreen,ctx,data,dataPrevious,w_motion_canvas,h_motion_canvas;
 
+var max_tiles=7;
+var amount_tiles_changed=0;
+
 function setup_motion(){
     h= parseInt(videoElement.videoHeight*screen.width/videoElement.videoWidth);
 
@@ -161,15 +346,18 @@ function setup_motion(){
 
 function detect_motion(){
 
-    let no_motion= 0.15;
-    let motion_change=4;
+    let motion_threshold= 0.65;
+
+
+    let change=[];
+    for (let x = 0; x < tiles_dim[1]; x++) {
+        for (let y = 0; y < tiles_dim[0]; y++) {
+            change.push(0);
+        }
+    }
     
     ctx.drawImage(videoElement, 0, 0, w_motion_canvas, h_motion_canvas);
     data = ctx.getImageData(0, 0, w_motion_canvas, h_motion_canvas).data;
-
-    for(let x = 0; x<motion.length;x++){
-        motion[x]=0;
-    }
 
     for (var y = 0; y < h_motion_canvas; y+= sample_size) {
         for (var x = 0; x < w_motion_canvas; x+= sample_size) {
@@ -188,30 +376,38 @@ function detect_motion(){
             var dz = pb - b;
             
             var dist = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2) + Math.pow(dz, 2));
-            if(dist>no_motion){
-            sum_motion[
+
+            change[
                 parseInt(y / pixels_per_tile[1]) * tiles_dim[0] +
                 parseInt(x / pixels_per_tile[0])
-                ] += dist/1000;
-            }
-            motion[
-                parseInt(y / pixels_per_tile[1]) * tiles_dim[0] +
-                parseInt(x / pixels_per_tile[0])
-                ] += dist/1000;
+                ] += dist;
+
 
         }
     }
 
-    for(let x = 0; x<tiles_dim[1];x++){
-        for(let y = 0; y<tiles_dim[0];y++){
+    for (let x = 0; x < tiles_dim[1]; x++) {
+        for (let y = 0; y < tiles_dim[0]; y++) {
+          change[x*tiles_dim[0]+y] /= 1000;
+          if (change[x*tiles_dim[0]+y]>1){
+            change[x*tiles_dim[0]+y]=0.99;
+          }
+          
+          let weight= 0.85;
+          motion[x*tiles_dim[0]+y] =motion[x*tiles_dim[0]+y]*weight+change[x*tiles_dim[0]+y]*(1-weight);
+        }
+      }
 
-            if (motion[x*tiles_dim[0]+y]<no_motion){
-                color_per_tile[x][y]=current_filter;
+      for (let x = 0; x < tiles_dim[1]; x++) {
+        for (let y = 0; y < tiles_dim[0]; y++) {
+            if(motion[x * tiles_dim[0] + y]>motion_threshold&&!animated[x][y]&&amount_tiles_changed<max_tiles){
+                randomColor(x,y);
+                animated[x][y]=true;
+                amount_tiles_changed++;
+                setTimeout(resetColor, 400+700*motion[x * tiles_dim[0] + y], x,y);
             }else{
-            
-                if (sum_motion[x*tiles_dim[0]+y]>motion_change){
-                    randomColor(x,y);
-                    sum_motion[x*tiles_dim[0]+y]=0;
+                if(!animated[x][y]){
+                    color_per_tile[x][y]=current_filter;
                 }
             }
         }
@@ -229,16 +425,24 @@ function detect_motion(){
     }
 }
 */
-setInterval(change_filter, 4000);
+setInterval(change_filter, 5000);
 
 function change_filter() {
     current_filter++;
     current_filter=current_filter%8;
+    vision_label.innerHTML=labels_vision[current_filter];
 }
 
 function randomColor(x,y) {
     color_per_tile[x][y]=parseFloat(Math.floor(Math.random() * 7)+1);
 }
+
+function resetColor(x,y) {
+    animated[x][y]=false;
+    color_per_tile[x][y]=current_filter;
+    amount_tiles_changed--;
+}
+
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // animate
@@ -248,22 +452,35 @@ let motion_setup=false;
 
 //videoElement.style.display="none";
 
-function animate() {
+async function animate() {
     
+    videoElement.play();
     
     requestAnimationFrame( animate );
 
     if(videoElement.videoHeight>0&&!motion_setup){
         setup_motion();
         setup_threeJS();
+        setup_object_detect_labels();
+        setup_object_outline();
         motion_setup=true;
     }else{
         if(motion_setup){
             detect_motion();
+            let d= await object_detection(videoElement);
+
+            if(current_filter==4){
+                draw_outline(d);
+            }else{
+                for (let i = 0; i < object_outlines.length; i++) {
+                    object_outlines[i].style.display= "none";
+                }
+                label_tiles(d);
+            }
+
             render();
         }
     }
-    console.log(motion);
 }
 
 animate()
