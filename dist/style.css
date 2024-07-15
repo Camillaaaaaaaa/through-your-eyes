@@ -27,7 +27,7 @@ p{
 }
 
 .objectOutlines{
-    border: 3px green solid;
+    border: 3px rgb(0, 255, 0) solid;
 }
 
 .tiles{
@@ -35,7 +35,7 @@ p{
 }
 
 .labelObjects{
-    color: green;
+    color: rgb(0, 255, 0);
 }
 #visionLabel{
     background-color: white;

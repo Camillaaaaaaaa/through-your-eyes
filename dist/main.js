@@ -401,7 +401,7 @@ function detect_motion(){
       for (let x = 0; x < tiles_dim[1]; x++) {
         for (let y = 0; y < tiles_dim[0]; y++) {
             if(motion[x * tiles_dim[0] + y]>motion_threshold&&!animated[x][y]){
-                if(Math.random()>0.65){
+                if(Math.random()>0.75){
                     randomColor(x,y);
                 }
                 animated[x][y]=true;
