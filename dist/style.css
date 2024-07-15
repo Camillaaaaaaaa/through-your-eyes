@@ -17,6 +17,7 @@ html,body {
     margin: 0;
     padding: 0;
     position: relative;
+    background-color: black;
 }
 
 p{
@@ -52,4 +53,9 @@ p{
 
 #container{
    position: relative;
+}
+
+h1{
+    color: white;
+    text-align: center;
 }
