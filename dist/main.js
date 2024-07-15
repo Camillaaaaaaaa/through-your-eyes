@@ -346,7 +346,7 @@ function setup_motion(){
 
 function detect_motion(){
 
-    let motion_threshold= 0.65;
+    let motion_threshold= 0.8;
 
 
     let change=[];
@@ -482,8 +482,8 @@ async function animate() {
                 for (let i = 0; i < object_outlines.length; i++) {
                     object_outlines[i].style.display= "none";
                 }
-                label_tiles(d);
             }
+            label_tiles(d);
 
             render();
         }
