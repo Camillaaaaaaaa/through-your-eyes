@@ -43,6 +43,7 @@ p{
     padding: 0.3rem 3rem;
     z-index: 1;
     margin:0px;
+    align-self: left;
 }
 
 #videoElement{
@@ -55,7 +56,7 @@ p{
    position: relative;
 }
 
-h1{
+h2{
     color: white;
     text-align: center;
 }
