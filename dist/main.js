@@ -402,16 +402,21 @@ function detect_motion(){
         for (let y = 0; y < tiles_dim[0]; y++) {
             if(motion[x * tiles_dim[0] + y]>motion_threshold&&!animated[x][y]){
                 if(Math.random()>0.75){
-                    randomColor(x,y);
+                    //randomColor(x,y);
+                    color_per_tile[x][y]= (current_filter+1)%8;
+                    amount_tiles_changed++;
                 }
                 animated[x][y]=true;
-                amount_tiles_changed++;
                 setTimeout(resetColor, 700+800*motion[x * tiles_dim[0] + y], x,y);
             }else{
                 if(!animated[x][y]){
                     color_per_tile[x][y]=current_filter;
                 }
             }
+        }
+
+        if(amount_tiles_changed>10){
+            change_filter()
         }
     }
     
