@@ -393,7 +393,7 @@ function detect_motion(){
             change[x*tiles_dim[0]+y]=0.99;
           }
           
-          let weight= 0.25;
+          let weight= 0.5;
           motion[x*tiles_dim[0]+y] =motion[x*tiles_dim[0]+y]*weight+change[x*tiles_dim[0]+y]*(1-weight);
         }
       }
@@ -401,7 +401,7 @@ function detect_motion(){
       for (let x = 0; x < tiles_dim[1]; x++) {
         for (let y = 0; y < tiles_dim[0]; y++) {
             if(motion[x * tiles_dim[0] + y]>motion_threshold&&!animated[x][y]){
-                if(Math.random()>0.5){
+                if(Math.random()>0.8){
                     randomColor(x,y);
                 }
                 animated[x][y]=true;
