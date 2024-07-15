@@ -401,7 +401,7 @@ function detect_motion(){
       for (let x = 0; x < tiles_dim[1]; x++) {
         for (let y = 0; y < tiles_dim[0]; y++) {
             if(motion[x * tiles_dim[0] + y]>motion_threshold&&!animated[x][y]){
-                if(Math.random()>0.8){
+                if(Math.random()>0.65){
                     randomColor(x,y);
                 }
                 animated[x][y]=true;
@@ -430,7 +430,7 @@ function detect_motion(){
 setInterval(change_filter, 5000);
 
 function change_filter() {
-    current_filter++;
+    current_filter+=1;
     current_filter=current_filter%8;
     vision_label.innerHTML=labels_vision[current_filter];
 }
@@ -442,7 +442,7 @@ function randomColor(x,y) {
 function resetColor(x,y) {
     animated[x][y]=false;
     color_per_tile[x][y]=current_filter;
-    amount_tiles_changed--;
+    amount_tiles_changed-=1;
 }
 
 
