@@ -30,7 +30,7 @@ p{
 }
 
 .tiles{
-    border: 1px rgba(0, 0, 0, 0.211)  solid;
+    outline: 1px rgb(0, 0, 0)  solid;
 }
 
 .labelObjects{
