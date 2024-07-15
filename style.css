@@ -17,6 +17,7 @@ html,body {
     margin: 0;
     padding: 0;
     position: relative;
+    background-color: black;
 }
 
 p{
@@ -42,6 +43,7 @@ p{
     padding: 0.3rem 3rem;
     z-index: 1;
     margin:0px;
+    align-self: left;
 }
 
 #videoElement{
@@ -52,4 +54,9 @@ p{
 
 #container{
    position: relative;
+}
+
+h2{
+    color: white;
+    text-align: center;
 }
