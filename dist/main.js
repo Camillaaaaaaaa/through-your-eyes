@@ -393,15 +393,17 @@ function detect_motion(){
             change[x*tiles_dim[0]+y]=0.99;
           }
           
-          let weight= 0.85;
+          let weight= 0.25;
           motion[x*tiles_dim[0]+y] =motion[x*tiles_dim[0]+y]*weight+change[x*tiles_dim[0]+y]*(1-weight);
         }
       }
 
       for (let x = 0; x < tiles_dim[1]; x++) {
         for (let y = 0; y < tiles_dim[0]; y++) {
-            if(motion[x * tiles_dim[0] + y]>motion_threshold&&!animated[x][y]&&amount_tiles_changed<max_tiles){
-                randomColor(x,y);
+            if(motion[x * tiles_dim[0] + y]>motion_threshold&&!animated[x][y]){
+                if(Math.random()>0.5){
+                    randomColor(x,y);
+                }
                 animated[x][y]=true;
                 amount_tiles_changed++;
                 setTimeout(resetColor, 700+800*motion[x * tiles_dim[0] + y], x,y);
