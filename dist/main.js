@@ -435,7 +435,7 @@ function randomColor(x,y) {
 function resetColor(x,y,change_large_filter) {
     animated[x][y]=false;
     //color_per_tile[x][y]=current_filter;
-    if(change_large_filter){
+    if(change_large_filter||current_filter==-1){
         randomColor(x,y);  
     }
     amount_tiles_changed-=1;
