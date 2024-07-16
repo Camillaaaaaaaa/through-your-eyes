@@ -315,103 +315,7 @@ function render() {
     texture.needsUpdate=true;
     renderer.render( scene, camera );
 }
-
-//--------------------------------------------------------------------------------------------------------------------------------
-// motion detection
-//--------------------------------------------------------------------------------------------------------------------------------
-
-// sample the colour of every 50 pixels
-//https://codersblock.com/blog/motion-detection-with-javascript/
-var sample_size,pixels_per_tile,offscreen,ctx,data,dataPrevious,w_motion_canvas,h_motion_canvas;
-
-var max_tiles=7;
-var amount_tiles_changed=0;
-
-function setup_motion(){
-    h= parseInt(videoElement.videoHeight*screen.width/videoElement.videoWidth);
-
-    w_motion_canvas=600;
-    h_motion_canvas= parseInt(h*w_motion_canvas/w);
-
-    sample_size = 30;
-    pixels_per_tile=[w_motion_canvas / tiles_dim[0],h_motion_canvas / tiles_dim[1]];
-
-    offscreen= new OffscreenCanvas(w_motion_canvas,h_motion_canvas);
-
-    ctx=offscreen.getContext("2d", {willReadFrequently: true});
-
-
-    data = ctx.getImageData(0, 0, w_motion_canvas, h_motion_canvas).data;
-    dataPrevious = ctx.getImageData(0, 0, w_motion_canvas, h_motion_canvas).data;
-}
-
-function detect_motion(){
-
-    let motion_threshold= 0.8;
-
-
-    let change=[];
-    for (let x = 0; x < tiles_dim[1]; x++) {
-        for (let y = 0; y < tiles_dim[0]; y++) {
-            change.push(0);
-        }
-    }
     
-    ctx.drawImage(videoElement, 0, 0, w_motion_canvas, h_motion_canvas);
-    data = ctx.getImageData(0, 0, w_motion_canvas, h_motion_canvas).data;
-
-    for (var y = 0; y < h_motion_canvas; y+= sample_size) {
-        for (var x = 0; x < w_motion_canvas; x+= sample_size) {
-
-            var index = (x + y * w_motion_canvas) * 4;
-            let pr = dataPrevious[index + 0];
-            let pg = dataPrevious[index + 1];
-            let pb = dataPrevious[index + 2];
-    
-            let r = data[index + 0];
-            let g = data[index + 1];
-            let b = data[index + 2];
-
-            var dx = pr - r;
-            var dy = pg- g;
-            var dz = pb - b;
-            
-            var dist = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2) + Math.pow(dz, 2));
-
-            change[
-                parseInt(y / pixels_per_tile[1]) * tiles_dim[0] +
-                parseInt(x / pixels_per_tile[0])
-                ] += dist;
-
-
-        }
-    }
-
-    for (let x = 0; x < tiles_dim[1]; x++) {
-        for (let y = 0; y < tiles_dim[0]; y++) {
-          change[x*tiles_dim[0]+y] /= 1000;
-          if (change[x*tiles_dim[0]+y]>1){
-            change[x*tiles_dim[0]+y]=0.99;
-          }
-          
-          let weight= 0.5;
-          motion[x*tiles_dim[0]+y] =motion[x*tiles_dim[0]+y]*weight+change[x*tiles_dim[0]+y]*(1-weight);
-        }
-      }
-
-      for (let x = 0; x < tiles_dim[1]; x++) {
-        for (let y = 0; y < tiles_dim[0]; y++) {
-            if(!animated[x][y]){
-                amount_tiles_changed++;
-                animated[x][y]=true;
-                let t= setTimeout(resetColor, 2500+2500*(1-motion[x * tiles_dim[0] + y]), x,y,false);
-                timeouts.push(t);
-            }
-        }
-    }
-    
-    dataPrevious = data;
-}
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // animate tiles
@@ -438,7 +342,6 @@ function resetColor(x,y,change_large_filter) {
     animated[x][y]=false;
     //color_per_tile[x][y]=current_filter;
     randomColor(x,y);  
-    amount_tiles_changed-=1;
 }
 
 function selectFilter(x,y){
@@ -478,9 +381,20 @@ function tiles_random_start(){
     for (let x = 0; x < tiles_dim[1]; x++) {
         for (let y = 0; y < tiles_dim[0]; y++) {
             if(!animated[x][y]){
-                amount_tiles_changed++;
                 animated[x][y]=true;
                 let t= setTimeout(resetColor, Math.random() * 3000, x,y,true);
+                timeouts.push(t);
+            }
+        }
+    }
+}
+
+function animate_tiles(){
+    for (let x = 0; x < tiles_dim[1]; x++) {
+        for (let y = 0; y < tiles_dim[0]; y++) {
+            if(!animated[x][y]){
+                animated[x][y]=true;
+                let t= setTimeout(resetColor, 2000+Math.random() * 3000, x,y,true);
                 timeouts.push(t);
             }
         }
@@ -521,19 +435,17 @@ async function animate() {
     requestAnimationFrame( animate );
 
     if(videoElement.videoHeight>0&&!motion_setup){
-        setup_motion();
         setup_threeJS();
         setup_object_detect_labels();
         setup_object_outline();
-        setupInteraction();
-
+        setupInteraction()
         tiles_random_start()
 
         motion_setup=true;
     }else{
         if(motion_setup){
             if(current_filter==-1){
-                detect_motion();
+                animate_tiles();
             }
             let d= await object_detection(videoElement);
 
