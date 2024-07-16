@@ -15,7 +15,8 @@ p{
 }
 
 .objectOutlines{
-    border: 3px rgb(0, 255, 0) solid;
+    border: 5px rgb(0, 255, 0) solid;
+    z-index: 2;
 }
 
 .tiles{
