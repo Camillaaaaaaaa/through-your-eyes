@@ -10,7 +10,7 @@ npx vite
 import * as THREE from 'three';
 import vertex from "./vertex.js";
 
-let current_filter=-1;
+let current_filter=0;
 let w= screen.width;
 let h= 0;
 let labels_vision=["typical human vision", "simulated red-green color blindness (protanopia)", "simulated garden snake vision", "simulated blue-yellow color blindness (tritanopia)", "computer vision: object detection", "simulated red-green color blindness/ dog vision (deuteranopia)", "simulated achromatopsia", "computer vision: edge detection"]
@@ -400,11 +400,23 @@ function detect_motion(){
 
       for (let x = 0; x < tiles_dim[1]; x++) {
         for (let y = 0; y < tiles_dim[0]; y++) {
-            if(!animated[x][y]){
-                amount_tiles_changed++;
+            if(motion[x * tiles_dim[0] + y]>motion_threshold&&!animated[x][y]){
+                if(Math.random()>0.75){
+                    //randomColor(x,y);
+                    color_per_tile[x][y]= (current_filter+1)%8;
+                    amount_tiles_changed++;
+                }
                 animated[x][y]=true;
-                setTimeout(resetColor, 500+Math.random()*900+1500*(1-motion[x * tiles_dim[0] + y]), x,y);
+                setTimeout(resetColor, 700+800*(1-motion[x * tiles_dim[0] + y]), x,y);
+            }else{
+                if(!animated[x][y]){
+                    color_per_tile[x][y]=current_filter;
+                }
             }
+        }
+
+        if(amount_tiles_changed>10){
+            change_filter()
         }
     }
     
@@ -420,7 +432,7 @@ function detect_motion(){
     }
 }
 */
-//setInterval(change_filter, 5000);
+setInterval(change_filter, 5000);
 
 function change_filter() {
     current_filter+=1;
@@ -434,50 +446,8 @@ function randomColor(x,y) {
 
 function resetColor(x,y) {
     animated[x][y]=false;
-    //color_per_tile[x][y]=current_filter;
-    if(current_filter==-1){
-        randomColor(x,y);  
-    }
+    color_per_tile[x][y]=current_filter;
     amount_tiles_changed-=1;
-}
-
-function selectFilter(x,y){
-    console.log("clicked",x,y)
-    current_filter=color_per_tile[x][y];
-
-    for(let x = 0; x<tiles_dim[1];x++){
-        for(let y = 0; y<tiles_dim[0];y++){
-            color_per_tile[x][y]=current_filter;
-        }
-    }
-    
-    vision_label.innerHTML=labels_vision[current_filter];
-
-    setTimeout(resetInteraction,4000);
-}
-
-function resetInteraction(){
-    
-    vision_label.innerHTML="";
-    current_filter=-1;
-}
-
-
-//--------------------------------------------------------------------------------------------------------------------------------
-// tiles interaction
-//--------------------------------------------------------------------------------------------------------------------------------
-
-function setupInteraction(){
-    for(let x = 0; x<tiles_dim[1];x++){
-        for(let y = 0; y<tiles_dim[0];y++){
-            tile_container[x][y].addEventListener("touchend",  
-                function() {           // anonyme Funktion
-                   selectFilter(x,y);  
-                }, 
-                false);
-        }
-    }
-
 }
 
 
@@ -500,13 +470,10 @@ async function animate() {
         setup_threeJS();
         setup_object_detect_labels();
         setup_object_outline();
-        setupInteraction();
         motion_setup=true;
     }else{
         if(motion_setup){
-            if(current_filter==-1){
-                detect_motion();
-            }
+            detect_motion();
             let d= await object_detection(videoElement);
 
             if(current_filter==4){
