@@ -458,7 +458,7 @@ function selectFilter(x,y){
 
 function resetInteraction(){
     
-    vision_label.innerHTML="";
+    vision_label.innerHTML="        ";
     current_filter=-1;
 }
 
