@@ -403,7 +403,7 @@ function detect_motion(){
             if(!animated[x][y]){
                 amount_tiles_changed++;
                 animated[x][y]=true;
-                setTimeout(resetColor, 500+Math.random()*900+1500*(1-motion[x * tiles_dim[0] + y]), x,y);
+                setTimeout(resetColor, 2500+2500*(1-motion[x * tiles_dim[0] + y]), x,y);
             }
         }
     }
@@ -442,24 +442,43 @@ function resetColor(x,y) {
 }
 
 function selectFilter(x,y){
-    console.log("clicked",x,y)
-    current_filter=color_per_tile[x][y];
+    if(current_filter==-1){
+        console.log("clicked",x,y)
+        current_filter=color_per_tile[x][y];
 
-    for(let x = 0; x<tiles_dim[1];x++){
-        for(let y = 0; y<tiles_dim[0];y++){
-            color_per_tile[x][y]=current_filter;
+        for(let x = 0; x<tiles_dim[1];x++){
+            for(let y = 0; y<tiles_dim[0];y++){
+                color_per_tile[x][y]=current_filter;
+            }
         }
+        
+        vision_label.innerHTML=labels_vision[current_filter];
+
+        setTimeout(resetInteraction,7000);
+        setTimeout(tiles_random_start,4000);
+    }else{
+        tiles_random_start();
+        resetInteraction();
     }
     
-    vision_label.innerHTML=labels_vision[current_filter];
-
-    setTimeout(resetInteraction,4000);
 }
 
 function resetInteraction(){
     
     vision_label.innerHTML="        ";
     current_filter=-1;
+}
+
+function tiles_random_start(){
+    for (let x = 0; x < tiles_dim[1]; x++) {
+        for (let y = 0; y < tiles_dim[0]; y++) {
+            if(!animated[x][y]){
+                amount_tiles_changed++;
+                animated[x][y]=true;
+                setTimeout(resetColor, Math.random() * 3000, x,y);
+            }
+        }
+    }
 }
 
 
@@ -501,6 +520,9 @@ async function animate() {
         setup_object_detect_labels();
         setup_object_outline();
         setupInteraction();
+
+        tiles_random_start()
+
         motion_setup=true;
     }else{
         if(motion_setup){
