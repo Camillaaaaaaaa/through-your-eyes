@@ -112,7 +112,7 @@ function setup_object_detect_labels(){
         labels.push([]);
         tile_container.push([]);
         for(let y = 0; y<tiles_dim[0];y++){
-            const con = document.createElement("button");
+            const con = document.createElement("div");
             con.style.width= max_width+"px";
             con.style.height= max_height+"px";
             con.style.position = "absolute";
@@ -458,7 +458,7 @@ function selectFilter(x,y){
 
 function resetInteraction(){
     
-    vision_label.innerHTML="";
+    vision_label.innerHTML="        ";
     current_filter=-1;
 }
 
