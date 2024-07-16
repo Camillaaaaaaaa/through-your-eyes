@@ -17,6 +17,19 @@ let labels_vision=["typical human vision", "simulated red-green color blindness 
 let vision_label=document.getElementById("visionLabel");
 let timeouts=[];
 
+
+let start_button=document.getElementById("start_button");
+
+start_button.addEventListener("click",  
+    function() {           // anonyme Funktion
+       start();  
+    }, 
+    false);
+
+function start(){
+    document.getElementById("explanation").style.display="none";
+}
+
 let stream;
 let videoElement = document.getElementById('videoElement');
 async function startWebcam() {
@@ -315,111 +328,7 @@ function render() {
     texture.needsUpdate=true;
     renderer.render( scene, camera );
 }
-  
 
-// sample the colour of every 50 pixels
-//https://codersblock.com/blog/motion-detection-with-javascript/
-var sample_size,pixels_per_tile,offscreen,ctx,data,dataPrevious,w_motion_canvas,h_motion_canvas;
-
-var max_tiles=7;
-var amount_tiles_changed=0;
-
-function setup_motion(){
-    h= parseInt(videoElement.videoHeight*screen.width/videoElement.videoWidth);
-
-    w_motion_canvas=600;
-    h_motion_canvas= parseInt(h*w_motion_canvas/w);
-
-    sample_size = 30;
-    pixels_per_tile=[w_motion_canvas / tiles_dim[0],h_motion_canvas / tiles_dim[1]];
-
-    offscreen= new OffscreenCanvas(w_motion_canvas,h_motion_canvas);
-
-    ctx=offscreen.getContext("2d", {willReadFrequently: true});
-
-
-    data = ctx.getImageData(0, 0, w_motion_canvas, h_motion_canvas).data;
-    dataPrevious = ctx.getImageData(0, 0, w_motion_canvas, h_motion_canvas).data;
-}
-
-function detect_motion(){
-
-    let motion_threshold= 0.8;
-
-
-    let change=[];
-    for (let x = 0; x < tiles_dim[1]; x++) {
-        for (let y = 0; y < tiles_dim[0]; y++) {
-            change.push(0);
-        }
-    }
-    
-    ctx.drawImage(videoElement, 0, 0, w_motion_canvas, h_motion_canvas);
-    data = ctx.getImageData(0, 0, w_motion_canvas, h_motion_canvas).data;
-
-    for (var y = 0; y < h_motion_canvas; y+= sample_size) {
-        for (var x = 0; x < w_motion_canvas; x+= sample_size) {
-
-            var index = (x + y * w_motion_canvas) * 4;
-            let pr = dataPrevious[index + 0];
-            let pg = dataPrevious[index + 1];
-            let pb = dataPrevious[index + 2];
-    
-            let r = data[index + 0];
-            let g = data[index + 1];
-            let b = data[index + 2];
-
-            var dx = pr - r;
-            var dy = pg- g;
-            var dz = pb - b;
-            
-            var dist = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2) + Math.pow(dz, 2));
-
-            change[
-                parseInt(y / pixels_per_tile[1]) * tiles_dim[0] +
-                parseInt(x / pixels_per_tile[0])
-                ] += dist;
-
-
-        }
-    }
-
-    for (let x = 0; x < tiles_dim[1]; x++) {
-        for (let y = 0; y < tiles_dim[0]; y++) {
-          change[x*tiles_dim[0]+y] /= 1000;
-          if (change[x*tiles_dim[0]+y]>1){
-            change[x*tiles_dim[0]+y]=0.99;
-          }
-          
-          let weight= 0.5;
-          motion[x*tiles_dim[0]+y] =motion[x*tiles_dim[0]+y]*weight+change[x*tiles_dim[0]+y]*(1-weight);
-        }
-      }
-
-      for (let x = 0; x < tiles_dim[1]; x++) {
-        for (let y = 0; y < tiles_dim[0]; y++) {
-            if(motion[x * tiles_dim[0] + y]>motion_threshold&&!animated[x][y]){
-                if(Math.random()>0.75){
-                    //randomColor(x,y);
-                    color_per_tile[x][y]= (current_filter+1)%8;
-                    amount_tiles_changed++;
-                }
-                animated[x][y]=true;
-                setTimeout(resetColor, 700+800*(1-motion[x * tiles_dim[0] + y]), x,y);
-            }else{
-                if(!animated[x][y]){
-                    color_per_tile[x][y]=current_filter;
-                }
-            }
-        }
-
-        if(amount_tiles_changed>10){
-            change_filter()
-        }
-    }
-    
-    dataPrevious = data;
-}
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // animate tiles
