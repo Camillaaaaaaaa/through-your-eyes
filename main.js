@@ -394,7 +394,7 @@ function animate_tiles(){
         for (let y = 0; y < tiles_dim[0]; y++) {
             if(!animated[x][y]){
                 animated[x][y]=true;
-                let t= setTimeout(resetColor, 2000+Math.random() * 3000, x,y,true);
+                let t= setTimeout(resetColor, 2000+Math.random() * 5000, x,y,true);
                 timeouts.push(t);
             }
         }
