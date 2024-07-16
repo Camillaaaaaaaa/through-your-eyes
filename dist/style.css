@@ -30,8 +30,8 @@ html,body {
 #start_button{
     font-size: 2rem;
     padding: 1rem;
-    
-    margin: 5rem;
+    color:black;
+    margin: 6rem;
 }
 
 p{
