@@ -87,7 +87,7 @@ for(let x = 0; x<tiles_dim[1];x++){
     color_per_tile.push([]);
     animated.push([]);
     for(let y = 0; y<tiles_dim[0];y++){
-        color_per_tile[x].push(0);
+        color_per_tile[x].push(parseFloat(Math.floor(Math.random() * 7)+1));
         motion.push(0);
         sum_motion.push(0);
         animated[x].push(false);
@@ -112,7 +112,7 @@ function setup_object_detect_labels(){
         labels.push([]);
         tile_container.push([]);
         for(let y = 0; y<tiles_dim[0];y++){
-            const con = document.createElement("div");
+            const con = document.createElement("button");
             con.style.width= max_width+"px";
             con.style.height= max_height+"px";
             con.style.position = "absolute";
@@ -470,7 +470,7 @@ function resetInteraction(){
 function setupInteraction(){
     for(let x = 0; x<tiles_dim[1];x++){
         for(let y = 0; y<tiles_dim[0];y++){
-            tile_container[x][y].addEventListener("touchend",  
+            tile_container[x][y].addEventListener("click",  
                 function() {           // anonyme Funktion
                    selectFilter(x,y);  
                 }, 
