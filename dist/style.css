@@ -1,17 +1,3 @@
-@media screen and (orientation: landscape) {
-    html {
-      /* Rotate the content container */
-      transform: rotate(-90deg);
-      transform-origin: left top;
-      /* Set content width to viewport height */
-      width: 100vh;
-      /* Set content height to viewport width */
-      height: 100vw;
-      overflow-x: hidden;
-      top: 100%;
-      left: 0;
-    }
-  }
 
 html,body {
     margin: 0;
@@ -34,19 +20,10 @@ p{
 
 .tiles{
     outline: 1px rgb(0, 0, 0)  solid;
+    
+    z-index: 9999;
 }
 
-button{
-    background-color: rgba(245, 245, 220, 0);
-    border-radius: 0;
-    text-align: inherit;
-    background: none;
-    box-shadow: none;
-    padding: 0;
-    cursor: pointer;
-    color: inherit;
-    font: inherit;
-}
 
 .labelObjects{
     color: rgb(0, 255, 0);
