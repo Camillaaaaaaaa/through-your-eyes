@@ -19,6 +19,7 @@ html,body {
     align-content: center;
     flex-direction: column;
     flex-wrap: nowrap;
+    display: none;
 }
 #explanationText{
     padding: 2rem;
