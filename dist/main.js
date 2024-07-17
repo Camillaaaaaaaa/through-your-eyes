@@ -453,6 +453,7 @@ async function animate() {
         setup_object_outline();
         setupInteraction();
         tiles_random_start();
+        render();
 
         motion_setup=true;
     }else{
