@@ -13,7 +13,7 @@ import vertex from "./vertex.js";
 let current_filter=-1;
 let w= screen.width;
 let h= 0;
-let labels_vision=["typical human vision", "simulated red-green color blindness (protanopia)", "simulated garden snake vision", "simulated blue-yellow color blindness (tritanopia)", "computer vision: object detection", "simulated red-green color blindness/ dog vision (deuteranopia)", "simulated achromatopsia", "computer vision: edge detection"]
+let labels_vision=["typical human vision", "simulated red-green color blindness (protanopia)", "simulated garden snail vision", "simulated blue-yellow color blindness (tritanopia)", "computer vision: object detection", "simulated red-green color blindness/ dog vision (deuteranopia)", "simulated achromatopsia", "computer vision: edge detection"]
 let vision_label=document.getElementById("visionLabel");
 let timeouts=[];
 
@@ -358,11 +358,11 @@ function resetColor(x,y,change_large_filter) {
 }
 
 function selectFilter(x,y){
+    for(let i=0; i<timeouts.length;i++){
+        clearTimeout(timeouts[i]);
+    }
+    timeouts=[];
     if(current_filter==-1){
-        for(let i=0; i<timeouts.length;i++){
-            clearTimeout(timeouts[i]);
-        }
-        timeouts=[];
         console.log("clicked",x,y)
         current_filter=color_per_tile[x][y];
 
@@ -372,12 +372,14 @@ function selectFilter(x,y){
                 animated[x][y]=false;
             }
         }
-        
         vision_label.innerHTML=labels_vision[current_filter];
 
-        setTimeout(tiles_random_start,4000);
-        setTimeout(resetInteraction,6000);
+        let t =setTimeout(tiles_random_start,4000);
+        timeouts.push(t);
+        t= setTimeout(resetInteraction,6000);
+        timeouts.push(t);
     }else{
+
         tiles_random_start();
         resetInteraction();
     }
@@ -431,108 +433,6 @@ function setupInteraction(){
 
 }
 
-var sample_size,pixels_per_tile,offscreen,ctx,data,dataPrevious,w_motion_canvas,h_motion_canvas;
-
-var max_tiles=7;
-var amount_tiles_changed=0;
-
-function setup_motion(){
-    h= parseInt(videoElement.videoHeight*screen.width/videoElement.videoWidth);
-
-    w_motion_canvas=600;
-    h_motion_canvas= parseInt(h*w_motion_canvas/w);
-
-    sample_size = 30;
-    pixels_per_tile=[w_motion_canvas / tiles_dim[0],h_motion_canvas / tiles_dim[1]];
-
-    offscreen= new OffscreenCanvas(w_motion_canvas,h_motion_canvas);
-
-    ctx=offscreen.getContext("2d", {willReadFrequently: true});
-
-
-    data = ctx.getImageData(0, 0, w_motion_canvas, h_motion_canvas).data;
-    dataPrevious = ctx.getImageData(0, 0, w_motion_canvas, h_motion_canvas).data;
-}
-
-function detect_motion(){
-
-    let motion_threshold= 0.8;
-
-
-    let change=[];
-    for (let x = 0; x < tiles_dim[1]; x++) {
-        for (let y = 0; y < tiles_dim[0]; y++) {
-            change.push(0);
-        }
-    }
-    
-    ctx.drawImage(videoElement, 0, 0, w_motion_canvas, h_motion_canvas);
-    data = ctx.getImageData(0, 0, w_motion_canvas, h_motion_canvas).data;
-
-    for (var y = 0; y < h_motion_canvas; y+= sample_size) {
-        for (var x = 0; x < w_motion_canvas; x+= sample_size) {
-
-            var index = (x + y * w_motion_canvas) * 4;
-            let pr = dataPrevious[index + 0];
-            let pg = dataPrevious[index + 1];
-            let pb = dataPrevious[index + 2];
-    
-            let r = data[index + 0];
-            let g = data[index + 1];
-            let b = data[index + 2];
-
-            var dx = pr - r;
-            var dy = pg- g;
-            var dz = pb - b;
-            
-            var dist = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2) + Math.pow(dz, 2));
-
-            change[
-                parseInt(y / pixels_per_tile[1]) * tiles_dim[0] +
-                parseInt(x / pixels_per_tile[0])
-                ] += dist;
-
-
-        }
-    }
-
-    for (let x = 0; x < tiles_dim[1]; x++) {
-        for (let y = 0; y < tiles_dim[0]; y++) {
-          change[x*tiles_dim[0]+y] /= 1000;
-          if (change[x*tiles_dim[0]+y]>1){
-            change[x*tiles_dim[0]+y]=0.99;
-          }
-          
-          let weight= 0.5;
-          motion[x*tiles_dim[0]+y] =motion[x*tiles_dim[0]+y]*weight+change[x*tiles_dim[0]+y]*(1-weight);
-        }
-      }
-/*
-      for (let x = 0; x < tiles_dim[1]; x++) {
-        for (let y = 0; y < tiles_dim[0]; y++) {
-            if(motion[x * tiles_dim[0] + y]>motion_threshold&&!animated[x][y]){
-                if(Math.random()>0.75){
-                    //randomColor(x,y);
-                    color_per_tile[x][y]= (current_filter+1)%8;
-                    amount_tiles_changed++;
-                }
-                animated[x][y]=true;
-                setTimeout(resetColor, 700+800*(1-motion[x * tiles_dim[0] + y]), x,y);
-            }else{
-                if(!animated[x][y]){
-                    color_per_tile[x][y]=current_filter;
-                }
-            }
-        }
-
-        if(amount_tiles_changed>10){
-            change_filter()
-        }
-    }*/
-    
-    dataPrevious = data;
-}
-
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // animate
@@ -554,7 +454,6 @@ async function animate() {
         setup_object_outline();
         setupInteraction();
         tiles_random_start();
-        setup_motion();
 
         motion_setup=true;
     }else{
@@ -563,7 +462,6 @@ async function animate() {
                 animate_tiles();
             }
             let d= await object_detection(videoElement);
-            detect_motion();
 
             if(current_filter==4){
                 draw_outline(d);
