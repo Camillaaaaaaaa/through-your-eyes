@@ -444,6 +444,7 @@ let motion_setup=false;
 
 async function animate() {
     
+    videoElement.play();
     
     requestAnimationFrame( animate );
 
@@ -458,7 +459,6 @@ async function animate() {
         resetInteraction()
     }else{
         if(motion_setup){
-            videoElement.play();
             if(current_filter==-1){
                 animate_tiles();
             }
