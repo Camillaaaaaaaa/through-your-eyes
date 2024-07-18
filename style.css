@@ -4,7 +4,6 @@ html,body {
     padding: 0;
     position: relative;
     background-color: black;
-    overflow-x: hidden;
 }
 
 #explanation{
@@ -45,7 +44,7 @@ p{
 }
 
 .objectOutlines{
-    border: 5px rgb(0, 255, 0) solid;
+    border: 3px rgb(0, 255, 0) solid;
     z-index: 2;
 }
 
