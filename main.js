@@ -387,7 +387,7 @@ function selectFilter(x,y){
 }
 
 function resetInteraction(){
-    vision_label.innerHTML="        ";
+    vision_label.innerHTML="";
     current_filter=-1;
 }
 
@@ -444,7 +444,7 @@ let motion_setup=false;
 
 async function animate() {
     
-    videoElement.play();
+    //videoElement.play();
     
     requestAnimationFrame( animate );
 
@@ -456,6 +456,7 @@ async function animate() {
         tiles_random_start();
 
         motion_setup=true;
+        resetInteraction()
     }else{
         if(motion_setup){
             if(current_filter==-1){
