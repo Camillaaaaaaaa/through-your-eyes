@@ -444,7 +444,7 @@ let motion_setup=false;
 
 async function animate() {
     
-    //videoElement.play();
+    videoElement.play();
     
     requestAnimationFrame( animate );
 
