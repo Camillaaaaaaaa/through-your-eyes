@@ -443,7 +443,6 @@ let motion_setup=false;
 //videoElement.style.display="none";
 
 async function animate() {
-    
     videoElement.play();
     
     requestAnimationFrame( animate );
