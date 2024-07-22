@@ -13,7 +13,7 @@ import vertex from "./vertex.js";
 
 let current_filter=-1;
 let w= screen.width;
-let h= 200;
+let h= screen.width/3*4;
 let labels_vision=["typical human vision", "simulated red-green color blindness (protanopia)", "simulated garden snail vision", "simulated blue-yellow color blindness (tritanopia)", "computer vision: object detection", "simulated red-green color blindness/ dog vision (deuteranopia)", "simulated achromatopsia", "computer vision: edge detection"]
 let vision_label=document.getElementById("visionLabel");
 let timeouts=[];
@@ -364,7 +364,6 @@ function selectFilter(x,y){
     }
     timeouts=[];
     if(current_filter==-1){
-        console.log("clicked",x,y)
         current_filter=color_per_tile[x][y];
 
         for(let x = 0; x<tiles_dim[1];x++){
@@ -440,6 +439,33 @@ function setupInteraction(){
 
 }
 
+//--------------------------------------------------------------------------------------------------------------------------------
+// pbject detection web worker
+//--------------------------------------------------------------------------------------------------------------------------------
+let d=[];
+const offscreen = new OffscreenCanvas(w,h);
+
+const ctx = offscreen.getContext("2d", {willReadFrequently: true});
+ctx.drawImage(videoElement,0,0, w,h);
+
+const worker_object= new Worker("object_detection.js");
+
+
+worker_object.onmessage = function(e) {
+    console.log("message");
+    if (e.data === 'Model loaded') {
+        console.log('Model loaded in worker object detection');
+        worker_object.postMessage(["start",ctx.getImageData(0, 0,w,h),w,h]);
+    } else {
+        console.log('Predictions from worker:', e.data);
+        d=e.data;
+        ctx.drawImage(videoElement,0,0, w,h);
+        worker_object.postMessage(["start",ctx.getImageData(0, 0,w,h),w,h]);
+    }
+};
+worker_object.postMessage(["load"]);
+
+
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // animate
@@ -451,29 +477,23 @@ let screen_setup=false;
 
 async function animate() {
     videoElement.play();
-    console.log(videoElement.videoHeight>0);
+
+    console.log("d",d);
 
     if(videoElement.videoHeight>0&&!screen_setup){
         setup_threeJS();
-        console.log("three");
         setup_object_detect_labels();
-        console.log("labels");
         setup_object_outline();
-        console.log("outline");
         setupInteraction();
-        console.log("interaction");
         resetInteraction();
-        console.log("reset");
         tiles_random_start();
-        console.log("random");
 
         screen_setup=true;
     }else{
         if(screen_setup){
             if(current_filter==-1){
                 animate_tiles();
-            }/*
-            let d= await object_detection(videoElement);
+            }
 
             if(current_filter==4){
                 draw_outline(d);
@@ -482,7 +502,7 @@ async function animate() {
                     object_outlines[i].style.display= "none";
                 }
             }
-            label_tiles(d);*/
+            label_tiles(d);
 
             render();
         }

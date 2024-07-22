@@ -70,7 +70,7 @@ p{
 }
 
 #videoElement{
-    /*opacity: 0;*/
+    opacity: 0;
     position: absolute;
     top:0px;
 }
