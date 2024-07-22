@@ -351,7 +351,7 @@ function randomColor(x,y) {
     color_per_tile[x][y]=parseFloat(Math.floor(Math.random() * 7)+1);
 }
 
-function resetColor(x,y,change_large_filter) {
+function resetColor(x,y) {
     animated[x][y]=false;
     //color_per_tile[x][y]=current_filter;
     randomColor(x,y);  
@@ -379,9 +379,15 @@ function selectFilter(x,y){
         t= setTimeout(resetInteraction,6000);
         timeouts.push(t);
     }else{
-
-        tiles_random_start();
         resetInteraction();
+
+        for (let x = 0; x < tiles_dim[1]; x++) {
+            for (let y = 0; y < tiles_dim[0]; y++) {
+                randomColor(x,y);
+            }
+        }
+        
+        tiles_random_start();
     }
     
 }
@@ -396,7 +402,7 @@ function tiles_random_start(){
         for (let y = 0; y < tiles_dim[0]; y++) {
             if(!animated[x][y]){
                 animated[x][y]=true;
-                let t= setTimeout(resetColor, Math.random() * 3000, x,y,true);
+                let t= setTimeout(resetColor, Math.random() * 3000, x,y);
                 timeouts.push(t);
             }
         }
@@ -408,7 +414,7 @@ function animate_tiles(){
         for (let y = 0; y < tiles_dim[0]; y++) {
             if(!animated[x][y]){
                 animated[x][y]=true;
-                let t= setTimeout(resetColor, 2000+Math.random() * 5000, x,y,true);
+                let t= setTimeout(resetColor, 2000+Math.random() * 5000, x,y);
                 timeouts.push(t);
             }
         }
@@ -438,26 +444,32 @@ function setupInteraction(){
 // animate
 //--------------------------------------------------------------------------------------------------------------------------------
 
-let motion_setup=false;
+let screen_setup=false;
+let model_loaded=0;
 
 //videoElement.style.display="none";
 
 async function animate() {
     videoElement.play();
-    
-    requestAnimationFrame( animate );
+    console.log(videoElement.videoHeight>0);
 
-    if(videoElement.videoHeight>0&&!motion_setup){
+    if(videoElement.videoHeight>0&&!screen_setup){
         setup_threeJS();
+        console.log("three");
         setup_object_detect_labels();
+        console.log("labels");
         setup_object_outline();
+        console.log("outline");
         setupInteraction();
+        console.log("interaction");
+        resetInteraction();
+        console.log("reset");
         tiles_random_start();
+        console.log("random");
 
-        motion_setup=true;
-        resetInteraction()
+        screen_setup=true;
     }else{
-        if(motion_setup){
+        if(screen_setup){
             if(current_filter==-1){
                 animate_tiles();
             }
@@ -471,10 +483,13 @@ async function animate() {
                 }
             }
             label_tiles(d);
+            
 
             render();
         }
     }
+    
+    requestAnimationFrame( animate );
 }
 
-animate()
+animate();
