@@ -71,4 +71,6 @@ for(let x = 0; x<15;x++){
         label_objects.push(para);
         object_outlines.push(con);
     }
-}
+
+,
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"

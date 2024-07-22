@@ -10,6 +10,7 @@ npx vite
 import * as THREE from 'three';
 import vertex from "./vertex.js";
 
+
 let current_filter=-1;
 let w= screen.width;
 let h= 0;
@@ -445,7 +446,6 @@ function setupInteraction(){
 //--------------------------------------------------------------------------------------------------------------------------------
 
 let screen_setup=false;
-let model_loaded=0;
 
 //videoElement.style.display="none";
 
@@ -483,7 +483,6 @@ async function animate() {
                 }
             }
             label_tiles(d);
-            
 
             render();
         }
