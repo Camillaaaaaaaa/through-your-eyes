@@ -402,7 +402,7 @@ function tiles_random_start(){
         for (let y = 0; y < tiles_dim[0]; y++) {
             if(!animated[x][y]){
                 animated[x][y]=true;
-                let t= setTimeout(resetColor, Math.random() * 3000, x,y);
+                let t= setTimeout(resetColor, Math.random() * 5000, x,y);
                 timeouts.push(t);
             }
         }
@@ -414,7 +414,7 @@ function animate_tiles(){
         for (let y = 0; y < tiles_dim[0]; y++) {
             if(!animated[x][y]){
                 animated[x][y]=true;
-                let t= setTimeout(resetColor, 2000+Math.random() * 5000, x,y);
+                let t= setTimeout(resetColor, 4000+Math.random() * 5000, x,y);
                 timeouts.push(t);
             }
         }
