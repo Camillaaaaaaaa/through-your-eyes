@@ -373,11 +373,11 @@ function selectFilter(x,y){
             }
         }
         vision_label.innerHTML=labels_vision[current_filter];
-
+/*
         let t =setTimeout(tiles_random_start,4000);
         timeouts.push(t);
         t= setTimeout(resetInteraction,6000);
-        timeouts.push(t);
+        timeouts.push(t);*/
     }else{
         resetInteraction();
 
@@ -402,7 +402,7 @@ function tiles_random_start(){
         for (let y = 0; y < tiles_dim[0]; y++) {
             if(!animated[x][y]){
                 animated[x][y]=true;
-                let t= setTimeout(resetColor, Math.random() * 3000, x,y);
+                let t= setTimeout(resetColor, Math.random() * 5000, x,y);
                 timeouts.push(t);
             }
         }
@@ -414,7 +414,7 @@ function animate_tiles(){
         for (let y = 0; y < tiles_dim[0]; y++) {
             if(!animated[x][y]){
                 animated[x][y]=true;
-                let t= setTimeout(resetColor, 2000+Math.random() * 5000, x,y);
+                let t= setTimeout(resetColor, 4000+Math.random() * 5000, x,y);
                 timeouts.push(t);
             }
         }
@@ -443,9 +443,10 @@ function setupInteraction(){
 // pbject detection web worker
 //--------------------------------------------------------------------------------------------------------------------------------
 let d=[];
-const offscreen = new OffscreenCanvas(videoElement.videoWidth, videoElement.videoWidth);
+const offscreen = new OffscreenCanvas(w,h);
+
 const ctx = offscreen.getContext("2d", {willReadFrequently: true});
-ctx.drawImage(videoElement,0,0, videoElement.videoWidth,videoElement.videoWidth);
+ctx.drawImage(videoElement,0,0, w,h);
 
 const worker_object= new Worker("object_detection.js");
 
@@ -454,17 +455,16 @@ worker_object.onmessage = function(e) {
     console.log("message");
     if (e.data === 'Model loaded') {
         console.log('Model loaded in worker object detection');
-        worker_object.postMessage(["start",ctx.getImageData(0, 0,videoElement.videoWidth, videoElement.videoWidth),w,h]);
+        worker_object.postMessage(["start",ctx.getImageData(0, 0,w,h),w,h]);
     } else {
         console.log('Predictions from worker:', e.data);
         d=e.data;
-        ctx.drawImage(videoElement,0,0, videoElement.videoWidth,videoElement.videoWidth);
-        worker_object.postMessage(["start",ctx.getImageData(0, 0,videoElement.videoWidth, videoElement.videoWidth),w,h]);
+        ctx.drawImage(videoElement,0,0, w,h);
+        worker_object.postMessage(["start",ctx.getImageData(0, 0,w,h),w,h]);
     }
 };
 worker_object.postMessage(["load"]);
 
-console.log(worker_object);
 
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -477,6 +477,8 @@ let screen_setup=false;
 
 async function animate() {
     videoElement.play();
+
+    console.log("d",d);
 
     if(videoElement.videoHeight>0&&!screen_setup){
         setup_threeJS();
