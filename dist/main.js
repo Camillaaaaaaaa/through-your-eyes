@@ -69,7 +69,7 @@ startWebcam();
 // object detection
 //--------------------------------------------------------------------------------------------------------------------------------
 
-const model_coco = await cocoSsd.load();
+//const model_coco = await cocoSsd.load();
 
 async function object_detection(img){
     const predictions = await model_coco.detect(img);
@@ -115,6 +115,7 @@ for(let x = 0; x<tiles_dim[1];x++){
 
 let labels,tile_container,container,max_width,max_height
 
+function setup_object_detect_labels(){
     labels=[];
     tile_container=[];
     container = document.getElementById("container");
@@ -151,7 +152,7 @@ let labels,tile_container,container,max_width,max_height
             tile_container[x].push(con);
         }
     }
-
+}
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // create object outline
@@ -160,6 +161,7 @@ let labels,tile_container,container,max_width,max_height
 const object_outlines=[];
 const label_objects=[];
 
+function setup_object_outline(){
     for(let x = 0; x<15;x++){
     for(let y = 0; y<tiles_dim[0];y++){
         const con = document.createElement("div");
@@ -179,7 +181,7 @@ const label_objects=[];
         object_outlines.push(con);
     }
 }
-
+}
 
 
 
@@ -267,6 +269,7 @@ function draw_outline(detections) {
 
 let camera,scene,renderer, loader, canvas,plane,texture,material,mesh,ctx_gl;
 
+function setup_threeJS(){
     scene = new THREE.Scene();
     scene.background = new THREE.Color( 0x000000 );
 
@@ -308,7 +311,7 @@ let camera,scene,renderer, loader, canvas,plane,texture,material,mesh,ctx_gl;
     
     scene.add( mesh );
 
-
+}
 
 
 
@@ -361,7 +364,6 @@ function selectFilter(x,y){
     }
     timeouts=[];
     if(current_filter==-1){
-        console.log("clicked",x,y)
         current_filter=color_per_tile[x][y];
 
         for(let x = 0; x<tiles_dim[1];x++){
@@ -424,6 +426,7 @@ function animate_tiles(){
 // tiles interaction
 //--------------------------------------------------------------------------------------------------------------------------------
 
+function setupInteraction(){
     for(let x = 0; x<tiles_dim[1];x++){
         for(let y = 0; y<tiles_dim[0];y++){
             tile_container[x][y].addEventListener("click",  
@@ -434,7 +437,34 @@ function animate_tiles(){
         }
     }
 
+}
 
+//--------------------------------------------------------------------------------------------------------------------------------
+// pbject detection web worker
+//--------------------------------------------------------------------------------------------------------------------------------
+let d=[];
+const offscreen = new OffscreenCanvas(videoElement.videoWidth, videoElement.videoWidth);
+const ctx = offscreen.getContext("2d", {willReadFrequently: true});
+ctx.drawImage(videoElement,0,0, videoElement.videoWidth,videoElement.videoWidth);
+
+const worker_object= new Worker("object_detection.js");
+
+
+worker_object.onmessage = function(e) {
+    console.log("message");
+    if (e.data === 'Model loaded') {
+        console.log('Model loaded in worker object detection');
+        worker_object.postMessage(["start",ctx.getImageData(0, 0,videoElement.videoWidth, videoElement.videoWidth),w,h]);
+    } else {
+        console.log('Predictions from worker:', e.data);
+        d=e.data;
+        ctx.drawImage(videoElement,0,0, videoElement.videoWidth,videoElement.videoWidth);
+        worker_object.postMessage(["start",ctx.getImageData(0, 0,videoElement.videoWidth, videoElement.videoWidth),w,h]);
+    }
+};
+worker_object.postMessage(["load"]);
+
+console.log(worker_object);
 
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -447,13 +477,21 @@ let screen_setup=false;
 
 async function animate() {
     videoElement.play();
-    console.log(videoElement.videoHeight>0);
 
+    if(videoElement.videoHeight>0&&!screen_setup){
+        setup_threeJS();
+        setup_object_detect_labels();
+        setup_object_outline();
+        setupInteraction();
+        resetInteraction();
+        tiles_random_start();
+
+        screen_setup=true;
+    }else{
         if(screen_setup){
             if(current_filter==-1){
                 animate_tiles();
             }
-            let d= await object_detection(videoElement);
 
             if(current_filter==4){
                 draw_outline(d);
@@ -469,5 +507,6 @@ async function animate() {
     }
     
     requestAnimationFrame( animate );
+}
 
 animate();
