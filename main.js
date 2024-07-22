@@ -373,11 +373,11 @@ function selectFilter(x,y){
             }
         }
         vision_label.innerHTML=labels_vision[current_filter];
-
+/*
         let t =setTimeout(tiles_random_start,4000);
         timeouts.push(t);
         t= setTimeout(resetInteraction,6000);
-        timeouts.push(t);
+        timeouts.push(t);*/
     }else{
         resetInteraction();
 
