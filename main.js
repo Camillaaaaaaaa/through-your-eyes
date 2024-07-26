@@ -54,6 +54,8 @@ async function startWebcam() {
         console.log(videoElement.videoWidth, videoElement.videoHeight);
         
         h= parseInt(videoElement.videoHeight*w/videoElement.videoWidth);
+
+        
         console.log(w,h);
         
     } catch (error) {
