@@ -12,8 +12,8 @@ import vertex from "./vertex.js";
 
 
 let current_filter=-1;
-let w= screen.width;
-let h= screen.width/3*4;
+let w= document.body.clientWidth;
+let h= parseInt(w/3*4);
 let labels_vision=["typical human vision", "simulated red-green color blindness (protanopia)", "simulated garden snail vision", "simulated blue-yellow color blindness (tritanopia)", "computer vision: object detection", "simulated red-green color blindness/ dog vision (deuteranopia)", "simulated achromatopsia", "computer vision: edge detection"]
 let vision_label=document.getElementById("visionLabel");
 let timeouts=[];
@@ -370,6 +370,7 @@ function selectFilter(x,y){
             for(let y = 0; y<tiles_dim[0];y++){
                 color_per_tile[x][y]=current_filter;
                 animated[x][y]=false;
+                tile_container[x][y].style.outline="none";
             }
         }
         vision_label.innerHTML=labels_vision[current_filter];
@@ -384,6 +385,7 @@ function selectFilter(x,y){
         for (let x = 0; x < tiles_dim[1]; x++) {
             for (let y = 0; y < tiles_dim[0]; y++) {
                 randomColor(x,y);
+                tile_container[x][y].style.outline="1px rgb(0, 0, 0)  solid";
             }
         }
         
