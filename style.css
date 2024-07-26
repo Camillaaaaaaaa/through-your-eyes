@@ -5,6 +5,9 @@ html,body {
     position: relative;
     background-color: black;
 }
+body{
+    margin: 5px;
+}
 
 #explanation{
     position: absolute;

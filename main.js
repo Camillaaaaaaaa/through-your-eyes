@@ -12,8 +12,8 @@ import vertex from "./vertex.js";
 
 
 let current_filter=-1;
-let w= screen.width;
-let h= screen.width/3*4;
+let w= screen.width-10;
+let h= w/3*4;
 let labels_vision=["typical human vision", "simulated red-green color blindness (protanopia)", "simulated garden snail vision", "simulated blue-yellow color blindness (tritanopia)", "computer vision: object detection", "simulated red-green color blindness/ dog vision (deuteranopia)", "simulated achromatopsia", "computer vision: edge detection"]
 let vision_label=document.getElementById("visionLabel");
 let timeouts=[];
