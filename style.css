@@ -1,9 +1,11 @@
 
 html,body {
-    margin: 5px;
     padding: 0;
     position: relative;
     background-color: black;
+}
+body{
+    margin: 5px;
 }
 
 #explanation{
