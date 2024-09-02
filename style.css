@@ -89,3 +89,13 @@ h2{
     font-family: "Inconsolata", monospace;
     font-weight: 700;
 }
+
+#insta{
+    color:white;
+    text-align: right;
+    margin: 1.5rem;
+}
+
+#link{
+    color:white;
+}
